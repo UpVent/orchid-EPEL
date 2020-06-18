@@ -1,0 +1,56 @@
+#!/bin/bash
+
+function check_os {
+    if type lsb_release >/dev/null 2>&1 ; then
+        distro=$(lsb_release -i -s)
+    elif [ -e /etc/os-release ] ; then
+        distro=$(awk -F= '$1 == "ID" {print $2}' /etc/os-release)
+    elif [ -e /etc/some-other-release-file ] ; then
+        echo -e "Unsupported os-release file! Exiting..."
+        exit 1
+    fi
+
+    distro=$(printf '%s\n' "$distro" | LC_ALL=C tr '[:upper:]' '[:lower:]')
+
+    case "$distro" in
+        debian*)  return 1 ;;
+        ubuntu*)  return 2 ;;
+        mint*)    return 2 ;;
+        *)        echo -e "Unsupported distribution: '$distro'" ; exit 1 ;;
+    esac
+}
+
+function requirement {
+    command -v "$1" > /dev/null 2>&1
+	if [ "$?" -eq "0" ]; then
+	    echo -e "[\e[92m✔\e[39m]::[$1]: is installed!";
+    else
+        echo -e "[\e[1m\e[91mx\e[39m]::[ERROR]: This Breed requires $1!" ;
+        exit 1
+    fi
+}
+
+function check_root {
+    if [ "$(id -u)" != "0" ]; then
+        echo "This script must be run as root" 1>&2
+        exit 1
+    fi
+}
+
+function validate_ip() {
+    local ip=$1
+    local stat=1
+
+    if [[ $ip =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
+        OIFS=$IFS
+        IFS='.'
+        ip=("$ip")
+        IFS=$OIFS
+        [[ ${ip[0]} -le 255 && ${ip[1]} -le 255 \
+            && ${ip[2]} -le 255 && ${ip[3]} -le 255 ]]
+        stat=$?
+    fi
+    return $stat
+}
+
+# 2020 - UpVent

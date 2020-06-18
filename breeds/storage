@@ -1,0 +1,91 @@
+#!/bin/bash
+
+# shellcheck source=../lib/requiem
+
+function help {
+    cat << __EOF__
+
+    usage: storage ls | status <device> | fs |
+                         unplug | check | repair <device> | help
+
+    Commands:
+
+    ls:      Lists all available disks
+    status:  Shows information about the consulted device (eg: /dev/sdx)
+    fs:      Lists all available filesystems
+    unplug:  Unmounts ALL volumes [potentially dangerous]
+    check:   Check & Verify all disks available
+    repair:  Repairs a given volume (eg: /dev/sdx)
+    help:    Show this message
+
+__EOF__
+}
+
+source "$( dirname "${BASH_SOURCE[0]}" )/../lib/requiem"
+
+requirement smartctl;
+
+function list {
+    if [ -z "${1}" ]; then
+        lsblk
+    else
+        lsblk "${1}"
+    fi
+}
+
+function status {
+    [ -z "${1}" ] && help && exit 1
+    fdisk "${1}"
+}
+
+function filesys {
+    mount | column -t
+}
+
+function unplug {
+    read -p -r "This may cause data loss are you sure? Y/n" -n 1
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]]
+    then
+        check_root
+        umount -a
+    else
+        echo "Invalid response, terminating for security reasons"
+        exit 1
+    fi
+}
+
+function check {
+    check_requirements
+
+    mount | grep "/dev/sd" | awk '{print $1}' | while read -r partition
+    do
+        echo "${partition:0:8}"
+    done | sort | uniq | while read -r disk
+    do
+        #All sdX disks are parsed here using the $disk variable
+        echo "Disk : $disk"
+        check_root
+        smartctl --smart=on --offlineauto=on --saveauto=on "$disk"
+    done
+}
+
+function repair {
+    check_root
+    umount "$1"
+    fsck -y  "$1"
+}
+
+case $1 in
+    help)  help ;;
+    ls) shift list ;;
+    status) shift status ;;
+    fs) shift filesys ;;
+    unplug) shift unplug ;;
+    check) shift check ;;
+    repair) shift repair "$@";;
+    *) help ;;
+
+esac
+
+# 2020 - UpVent

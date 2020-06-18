@@ -1,0 +1,210 @@
+#!/bin/bash
+
+# shellcheck source=../lib/requiem
+
+function help {
+    cat <<__EOF__
+
+    usage: orcd apache [ on | off | restart | debug | new | del | backup]
+
+    on:      Turns on the apache webserver
+    off:     Turns off the apache webserver
+    restart: Restarts the server gracefully
+    debug:   Use systemd to debug the apache service
+    new:     Writes a new virtual host under /etc/apache2/sites-available/
+    del:     Deletes a virtual host under /etc/apache2/sites-available/
+    backup:  Creates an apache backup git directory ready to use on a remote machine
+
+__EOF__
+}
+
+source "$( dirname "${BASH_SOURCE[0]}" )/../lib/requiem"
+
+function del_mod {
+    requirement apache2
+    check_root
+    HOSTS_DIR="/etc/apache2/sites-available"
+    echo "Please input the (URL) for this virtual host"
+    echo "Example: example.com"
+    read -r url
+
+    SITE_DIR="/var/www/${url}"
+    rm -rf "${SITE_DIR}"
+    rm "${HOSTS_DIR}/${url}.conf"
+    echo "Virtual Host removed successfully"
+}
+
+function write_mod {
+    requirement apache2
+    check_root
+    HOSTS_DIR="/etc/apache2/sites-available/"
+    echo "Please input the (URL) for this virtual host"
+    echo "Example: example.com"
+    read -r url
+
+    SITE_DIR="/var/www/${url}/public_html"
+
+    mkdir -p "${SITE_DIR}"
+    chown -R www-data "${SITE_DIR}"
+
+    cat > "${HOSTS_DIR}/${url}.conf" <<EOL
+    <VirtualHost *:443>
+                 ServerName ${url}
+                 ServerAlias www.${url}
+
+                 DocumentRoot  /var/www/${url}/public_html/
+
+                 <Directory /var/www/${url}/public_html>
+                            Options Includes
+                            Options -FollowSymLinks -Indexes
+                 </Directory>
+    </VirtualHost>
+
+    <VirtualHost *:80>
+    # Uncomment to redirect to https
+                  ServerName ${url}
+                  ServerAlias www.${url}
+                 # Redirect permanent / https://{$url}
+    </VirtualHost>
+EOL
+
+    chmod 775 -R "${SITE_DIR}"
+    echo "Virtual Host Written Successfully"
+}
+
+function bckup_first() {
+    now=$(date)
+
+    requirement "git";
+
+    # Create a git directory where the files will be served
+    mkdir /git
+    # Assign permissions to the current user
+    chown "$USER":"$USER" /git
+    cd /git || exit 1 # Exit in case backup directory fails
+
+    # Init an empty repo
+    git init --bare apache2
+
+    # Backup the current apache contents just in case
+    # a mistake happens while converting the directory
+    # into version controlled configuration files.
+    cp -rp /etc/apache2 /etc/apache2.bak
+
+    # Move all the contents of apache into the repository
+    mv /etc/apache2/* /git/apache2
+
+    # Warn the user about not doing stuff
+    echo -e "\e[1m\e[31mDO NOT TAMPER WITH APACHE UNTIL 'SAFE' IS DISPLAYED\e[0m"
+
+    # Remove the empty apache2 directory
+    rm /etc/apache2
+
+    # Make sure apache's files are owned by root
+    find /git/apache2 -name '.?*' -prune -o -exec chown root:root {} +
+
+    # Create a symlink to the repository so the apache2 daemon can find it
+    ln -s /git/apache2 /etc/apache2
+
+    # [DEBUG] Check if symlink was created correctly
+    # ls -l /etc | grep apache2
+
+    # Check if apache can be reloaded properly
+    # TODO: Add this to lib/requiem
+    if apache2ctl graceful; then
+        echo "Apache server restarted correctly! "
+    elif apache2ctl reload; then
+        echo "Apache couldn't be reloaded gracefully. Force reloaded it, expect downtime"
+    else
+        echo "Apache could not be reloaded! Check before proceeding"
+        exit 1
+    fi
+
+    # Tell the user we are making the first commit 'cause yes
+    echo -e "Now commiting changes..."
+
+    # Just add everything, damn it.
+    git add .
+    # Create a commit message
+    git commit -a -m "First Apache Backup - Date: ${now}"
+    # Push changes to the repository
+    git push origin master
+
+    echo -e "Backup process completed, apache is \e[1m\e[32mSAFE\e[0m"
+}
+
+function bckup() {
+    now=$(date)
+
+    echo "Apache is being backed up"
+    echo -e "\e[1m\e[31mDO NOT TAMPER WITH APACHE UNTIL 'SAFE' IS DISPLAYED\e[0m"
+
+    # Make sure apache's files are owned by root
+    find /git/apache2 -name '.?*' -prune -o -exec chown root:root {} +
+
+    # Tell the user we are commiting all changes they might have added
+    echo -e "Now commiting /git/* changes "
+
+    # Commit all the current configuration changes into /git
+    git add .
+    # Create a commit message
+    git commit -a -m "Apache Backup - Date: ${now}"
+    # Push changes to the repository
+    git push origin master
+
+    echo -e "Backup process completed, apache is \e[1m\e[32mSAFE\e[0m"
+}
+
+case $1 in
+    help) help ;;
+
+    on)
+        check_root;
+        systemctl start apache2 && systemctl enable apache2 ;;
+
+    off)
+        check_root
+        systemctl stop apache2 ;;
+
+    restart)
+        check_root
+        apache2ctl graceful ;;
+
+    debug)
+        check_root
+        journalctl -u apache2 ;;
+
+    new)
+        check_root
+        write_mod ;;
+
+    del)
+        check_root
+        echo "This may result in data loss!";
+        del_mod;;
+
+    backup)
+        check_root
+        echo "Checking if a backup was created previously"
+
+        DIR="/git/.git"
+
+        # If the /git directory doesn't exist then run the first backup function
+        # if it does exist run the normal backup option
+       
+        if [ ! -f "$DIR" ]; then
+            echo "Make sure to git clone the resulting repo in a remote machine where the backup can be stored"
+            bckup_first;
+            echo "First apache backup succeeded! Please check /git"
+        elif [ -d "$DIR" ]; then
+            bckup
+            echo "Apache backup succeeded!"
+        else
+            echo "Unhandled error"
+            exit 1
+        fi
+        ;;
+
+    *) help;;
+esac
+# 2020 - UpVent
