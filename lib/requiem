@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# LIB REQUIEM CENTOS VERSION
+
 function check_os {
     if type lsb_release >/dev/null 2>&1 ; then
         distro=$(lsb_release -i -s)

@@ -6,12 +6,12 @@ OPATH=$(pwd -P)
 export OPATH
 popd > /dev/null || exit
 
-function use {
+function use() {
     cat << __EOF__
 
    ❀  O R C H I D  ❀
 
-   Sysadmin script for common server tasks
+   Sysadmin script for common server tasks [CENTOS VERSION]
 
    usage: orcd [BREED] [OPTIONS] or type "--help" to view this screen
           or command help usage.
