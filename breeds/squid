@@ -1,8 +1,8 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # shellcheck source=../lib/requiem
 
-function help {
+help() {
     cat <<__EOF__
 
     usage: orcd mail [ help | ubuntu | debian | centos | fedora ]

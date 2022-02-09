@@ -1,27 +1,25 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # shellcheck source=../lib/requiem
 
-function help {
+help() {
     cat <<__EOF__
+
+    [NOTICE: THIS MODULE IS A WORK IN PROGRESS AND IT'S NOT READY]
 
     usage: orcd django [ setup | log | restart | backup]
 
     setup:   Creates and configures a Django
-    log:     Show debug info for current django deployments
-    restart: Restarts a django server gracefully
-    backup:  Backs up a given Django instance
     help:    Show this screen
 __EOF__
 }
 
 source "$( dirname "${BASH_SOURCE[0]}" )/../lib/requiem"
 
-
-function setup_django {
+setup_django() {
 
     # Get current running user
-    user=$(whoami)
+    user="$(whoami)"
 
     # Count arguments to prevent wrong usage
     if [ "$#" -ne 3 ]; then
@@ -33,6 +31,7 @@ function setup_django {
     requirement python3
     requirement pip3
     requirement apache2
+    apt_requirement libapache2-mod-wsgi-py3
 
     # Install venv locally
     pip3 install venv --user
@@ -86,11 +85,11 @@ function setup_django {
         echo "Apache configured correctly"
         # Post apache config
         echo "Applying permissions to project"
-        chmod 664 "~/${1}/db.sqlite3"
+        chmod 664 "/home/${1}/db.sqlite3"
 
         echo "db.sqlite3 owner must be in the www-data group"
         echo "Elevating privileges"
-        sudo chown :www-data "~/${1}"
+        sudo chown :www-data "/home/${1}"
         echo "Testing apache configuration files"
         sudo apache2ctl configtest
         echo "Restarting the Apache 2 daemon"
@@ -103,13 +102,11 @@ function setup_django {
     else
         echo "Wrong server name, falling back to nginx"
         config_nginx "$user" "$1" "$3";
-        echo "NGINX configured correctly"
+        echo "Couldn't properly configure NGINX please check generated files and try again"
     fi
-   
 }
 
-
-function config_apache {
+config_apache() {
     requirement apache2;
     # $1 = user
     # $2 = project name
@@ -119,7 +116,7 @@ function config_apache {
     sudo -s # Just suDO it
     echo "Now writing new apache Virtual Host..."
    
-    cat > "/etc/apache2/sites-available/${3}.conf" <<EOL
+    cat > "/etc/apache2/sites-available/${3}_orcd.conf" <<EOL
 
     <VirtualHost *:80>
                  ServerName ${3}
@@ -144,7 +141,7 @@ EOL
     exit
 }
 
-function config_nginx {
+config_nginx() {
     requirement nginx
     # $1 = user
     # $2 = project name
@@ -152,7 +149,7 @@ function config_nginx {
 
     echo "Superuser permissions needed, elevating privileges"
     sudo -s # Just suDO it
-    cat > "/etc/nginx/sites-available/${3}" <<EOL
+    cat > "/etc/nginx/sites-available/${3}_orcd" <<EOL
 
     server {
            listen 80;
@@ -181,20 +178,14 @@ case $1 in
         echo "Orchid will now attempt to configure a Django instance"
         echo "but first it needs you to input the following:"
 
-        read -pr "Please input the project name" pname
-        read -pr "Are you using apache or nginx?" server
-        read -pr "Please input the server domain or IP addr" pserv
+        read -pr "Please input the project name: " pname
+        read -pr "Are you using apache or nginx?: " server
+        read -pr "Please input the server domain or IP addr: " pserv
         # read -pr "Choose your database engine: (Postgres | SQLite)" dbengine
         # read -pr "Please input your default port for this Django app" djport
-       
+
         setup_django "$pname" "$server" "$pserv"
-    ;;
-
-    log);;
-
-    restart);;
-
-    backup);;
+        ;;
 
     *) help;;
 esac

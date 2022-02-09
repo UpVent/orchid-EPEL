@@ -1,8 +1,8 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # shellcheck source=../lib/requiem
 
-function help {
+help() {
     cat <<__EOF__
 
     usage: orcd prestashop [ setup | list | backup]
@@ -12,8 +12,27 @@ function help {
     backup:  Backs up a given prestashop instance
     help:    Show this screen
 __EOF__
+
 }
 
 source "$( dirname "${BASH_SOURCE[0]}" )/../lib/requiem"
+
+setup_ps() {
+    requirement apache2
+    apt_requirement libapache2-mod-php
+
+}
+
+case $1 in
+    help) help ;;
+
+    setup) setup_ps ;;
+
+    list) list_ps ;;
+
+    backup) backup_ps ;;
+
+    *) help;;
+esac
 
 # Orchid 2020 - UpVent

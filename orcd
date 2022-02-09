@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 [ -L "$0" ] && pushd "$(readlink "$0" | xargs dirname)" > /dev/null \
     || pushd "$(dirname "$0")" > /dev/null || exit
@@ -6,12 +6,12 @@ OPATH=$(pwd -P)
 export OPATH
 popd > /dev/null || exit
 
-function use() {
+function use {
     cat << __EOF__
 
-   ❀  O R C H I D  ❀
+   $(echo -e "\e[95m❀  O R C H I D  ❀\e[0m")
 
-   Sysadmin script for common server tasks [CENTOS VERSION]
+   Sysadmin script for common server tasks
 
    usage: orcd [BREED] [OPTIONS] or type "--help" to view this screen
           or command help usage.
@@ -27,7 +27,7 @@ __EOF__
     done
 
     [ "${OPTIONS}" == "help" ] && exit 0 || exit 1
-   
+
 }
 
 OPTIONS=$1; shift;
@@ -35,4 +35,4 @@ OPTIONS=$1; shift;
 [ ! -f "${OPATH}/breeds/${OPTIONS}" ] && use
 "${OPATH}"/breeds/"${OPTIONS}" "$@"
 
-# Orchid 2020 - UpVent
+# Orchid 2020 - UpVent Technologies

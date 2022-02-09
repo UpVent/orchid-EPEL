@@ -18,24 +18,41 @@ UpVent is now taking charge of this program, porting it completely to Bash.
 
 ## Overview
 
-Orchid CentOS is a respin of Orchid written in bash specially for CentOS / RHEL
+Orchid is a Debian/Ubuntu terminal tool written in bash
 that lets you interact with common server utilities and applications in hopes
 of making the process of preparing, managing and deploying easier for both
-sysadmins and day to day Gnu/Linux users.
+sysadmins and day to day Gnu/Linux users. 
 
 Orchid may (or may not) help you in the following ways:
 
 * It lets you easily manage common server managing tasks.
-* It works on CentOS / RHEL and it's derivatives.
+* It works on Debian, Ubuntu and it's derivatives.
 * It is easy to extend by developing your own modules.
 * It is compatible with most popular stack tools.
 
 ## Installation
 
+To install and use Orchid in your system you have to run the following commands
+
+1. Clone the repo, doing this in your home folder is recommended:
+`git clone https://github.com/UpVent/orchid.git && cd orchid`
+
+2. To run orchid just use bash or the `./` order to start executing commands:
+`./orcd` or `bash orcd`
+
+3. [OPTIONAL] if you want to have Orchid available at all times save the repo in a
+hidden folder and add it to your `PATH` variable:
+
+`git clone https://github.com/UpVent/orchid.git && mv orchid .orchid`
+
+Then:
+
+`echo export PATH=$PATH:~/.orchid >> .bashrc`
+
 For now installation should be done manually in your home folder. We are
 currently working in the following installation options:
 
-* Via `.rpm` package.
+* Via `.deb` package.
 * Standalone binary (using `shc`).
 * Via apt repository
 
@@ -73,4 +90,4 @@ will be considered stable and safe to use.
 
 ## Project goals
 
-Please consult the [Orchid Projects](https://github.com/VentGrey/orchid/projects) tab.
+There are a lot of things to do, please consult the [projects](https://github.com/VentGrey/orchid/projects) tab.
