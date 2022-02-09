@@ -13,9 +13,10 @@ check_os() {
     distro=$(printf '%s\n' "$distro" | LC_ALL=C tr '[:upper:]' '[:lower:]')
 
     case "$distro" in
-        debian*)  return 1 ;;
-        ubuntu*)  return 2 ;;
-        mint*)    return 2 ;;
+        Rocky*)  return 1 ;;
+        CentOS*)  return 1 ;;
+        RedHatEnterpriseServer*)  return 1 ;;
+        RedHatEnterpriseDesktop*)  return 1 ;;
         *)        echo -e "Unsupported distribution: '$distro'" ; exit 1 ;;
     esac
 }
