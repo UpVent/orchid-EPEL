@@ -1,9 +1,11 @@
 <div align="center">
-    <h1>Orchid<h1/>
+    <h1>Orchid - CentOS / RHEL version<h1/>
     <img width="200px" src="logo.png">
 </div>
 
-Bash script targeted to sysadmins and server managers who wish to save time.
+Bash script collection targeted to sysadmins and server managers who wish to save time.
+
+This is the CentOS / RHEL version of the original [Orchid](https://github.com/upvent/orchid) script.
 
 ---
 
@@ -18,17 +20,10 @@ UpVent is now taking charge of this program, porting it completely to Bash.
 
 ## Overview
 
-Orchid is a Debian/Ubuntu terminal tool written in bash
+Orchid CentOS is an EPEL Linux terminal tool written in bash
 that lets you interact with common server utilities and applications in hopes
 of making the process of preparing, managing and deploying easier for both
-sysadmins and day to day Gnu/Linux users. 
-
-Orchid may (or may not) help you in the following ways:
-
-* It lets you easily manage common server managing tasks.
-* It works on Debian, Ubuntu and it's derivatives.
-* It is easy to extend by developing your own modules.
-* It is compatible with most popular stack tools.
+sysadmins and day to day Gnu/Linux users.
 
 ## Installation
 
@@ -52,9 +47,8 @@ Then:
 For now installation should be done manually in your home folder. We are
 currently working in the following installation options:
 
-* Via `.deb` package.
+* Via `.rpm` package.
 * Standalone binary (using `shc`).
-* Via apt repository
 
 ## Usage
 
