@@ -1,11 +1,11 @@
 <div align="center">
-    <h1>Orchid - CentOS / RHEL version<h1/>
+    <h1>Orchid - Rocky / RHEL version<h1/>
     <img width="200px" src="logo.png">
 </div>
 
 Bash script collection targeted to sysadmins and server managers who wish to save time.
 
-This is the CentOS / RHEL version of the original [Orchid](https://github.com/upvent/orchid) script.
+This is the Rocky Linux / RHEL version of the original [Orchid](https://github.com/upvent/orchid) script.
 
 ---
 
