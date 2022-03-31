@@ -21,7 +21,7 @@ __EOF__
 source "$( dirname "${BASH_SOURCE[0]}" )/../lib/requiem"
 
 del_mod() {
-    requirement nginx
+    dnf_requirement nginx
     check_root
     HOSTS_DIR="/etc/nginx/sites-available"
     echo "Please input the (URL) for this server block"
@@ -49,8 +49,8 @@ write_mod() {
 
     cat > "${HOSTS_DIR}/${url}" <<EOL
     server {
-           listen 80 default_server;
-           listen [::]:80 default_server;
+           listen 80;
+           listen [::]:80;
 
            root /var/www/${url};
            index index.html index.htm index.nginx-debian.html;
