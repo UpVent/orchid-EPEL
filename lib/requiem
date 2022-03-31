@@ -1,24 +1,10 @@
-#!/usr/bin/env bash
+#!/usr/bin/bash
 
 check_os() {
-    if type lsb_release >/dev/null 2>&1 ; then
-        distro=$(lsb_release -i -s)
-    elif [ -e /etc/os-release ] ; then
-        distro=$(awk -F= '$1 == "ID" {print $2}' /etc/os-release)
-    elif [ -e /etc/some-other-release-file ] ; then
-        echo -e "Unsupported os-release file! Exiting..."
+    if [ ! -f /etc/redhat-release ]; then
+        echo "Red Hat release file not found, this is not an EPEL Linux!"
         exit 1
     fi
-
-    distro=$(printf '%s\n' "$distro" | LC_ALL=C tr '[:upper:]' '[:lower:]')
-
-    case "$distro" in
-        Rocky*)  return 1 ;;
-        CentOS*)  return 1 ;;
-        RedHatEnterpriseServer*)  return 1 ;;
-        RedHatEnterpriseDesktop*)  return 1 ;;
-        *)        echo -e "Unsupported distribution: '$distro'" ; exit 1 ;;
-    esac
 }
 
 apt_requirement() {
