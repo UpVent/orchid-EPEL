@@ -7,14 +7,13 @@ check_os() {
     fi
 }
 
-apt_requirement() {
-    # Use dpkg-query present in all debian based to check for dependencies.
-    if [[ $(/usr/bin/dpkg-query --show --showformat='${db:Status-Status}\n' "$1") = "installed" ]]; then
+dnf_requirement() {
+    if [[ $(rpm -q --quiet "$1") ]]; then
 	    echo -e "[\e[92m✔\e[39m]::[$1]: is installed!";
     else
         echo -e "[\e[1m\e[91mx\e[39m]::[ERROR]: This Breed requires $1!";
         echo -e "You can install [\e[1m\e[91m$1\e[39m] using the following order as superuser:";
-        echo "apt install $1"
+        echo "dnf install $1"
         exit 1
     fi
 }
